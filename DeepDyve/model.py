@@ -1,80 +1,21 @@
-from sklearn import svm
-from sklearn.datasets import samples_generator
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import f_regression
-from sklearn.pipeline import Pipeline
-import pandas as pd
 import json
-import ijson
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import pandas as pd
 
 with open("../Downloads/DeepDyve.json") as fileobject:
+    str = fileobject.next()
+    deepid = str[:11]
+    rest = str[11:]
 
+    d = json.loads(rest)
+    d["permdld"] = deepid
+    b = d['body']
 
-
-    str= fileobject.next()
-    deepid=str[:11]
-    rest=str[11:]
-
-
-
-    d= json.loads(rest)
-    d["permdld"]=deepid
-    b=d['body']
-
-    #print json.dumps(d['body'])
-for k,i in d.iteritems():
-    p=pd.Series(d[k])
-    df=pd.DataFrame(p)
+    # print json.dumps(d['body'])
+for k, i in d.iteritems():
+    p = pd.Series(d[k])
+    df = pd.DataFrame(p)
     print df
-
-
-
-
-
-
-
 
 assert False
 # generate some data to play with
@@ -94,4 +35,3 @@ anova_svm.score(X, y)
 
 # getting the selected features chosen by anova_filter
 anova_svm.named_steps['anova'].get_support()
-

@@ -1,39 +1,88 @@
 [
-{"permdld":"1",
-
-"document":
-{"id": "journal_id1",
-"title": "articletitle",
-"journal": "journalname",
-"publisher": "publishername",
-"issn": "issn" ,
-"eissn":"eissn",
-"authors": ["author1","author2","etc"],
-"sa": ["subject1","subject2","subject3"],
-"volissue": "volume-issue string",
-"a_affiliation": "author affiliation",
-"reftitle":["reference1","reference2","reference3","etc"],
-"refauthor": ["author1","author2","author3","etc"],
-"refvol": ["volume/issue","volume/issue","volume/issue","etc"],
-"body" : "fulltext-of-pdf" }},
-
-{"permdld":"2",
-
-"document":
-{"id": "journal_id2",
-"title": "articletitle",
-"journal": "journalname",
-"publisher": "publishername",
-"issn": "issn" ,
-"eissn":"eissn",
-"authors": ["author1","author2","etc"],
-"sa": ["subject1","subject2","subject3"],
-"volissue": "volume-issue string",
-"a_affiliation": "author affiliation",
-"reftitle":["reference1","reference2","reference3","etc"],
-"refauthor": ["author1","author2","author3","etc"],
-"refvol": ["volume/issue","volume/issue","volume/issue","etc"],
-"body" : "fulltext-of-pdf" }}
+  {
+    "permdld": "1",
+    "document": {
+      "id": "journal_id1",
+      "title": "articletitle",
+      "journal": "journalname",
+      "publisher": "publishername",
+      "issn": "issn",
+      "eissn": "eissn",
+      "authors": [
+        "author1",
+        "author2",
+        "etc"
+      ],
+      "sa": [
+        "subject1",
+        "subject2",
+        "subject3"
+      ],
+      "volissue": "volume-issue string",
+      "a_affiliation": "author affiliation",
+      "reftitle": [
+        "reference1",
+        "reference2",
+        "reference3",
+        "etc"
+      ],
+      "refauthor": [
+        "author1",
+        "author2",
+        "author3",
+        "etc"
+      ],
+      "refvol": [
+        "volume/issue",
+        "volume/issue",
+        "volume/issue",
+        "etc"
+      ],
+      "body": "fulltext-of-pdf"
+    }
+  },
+  {
+    "permdld": "2",
+    "document": {
+      "id": "journal_id2",
+      "title": "articletitle",
+      "journal": "journalname",
+      "publisher": "publishername",
+      "issn": "issn",
+      "eissn": "eissn",
+      "authors": [
+        "author1",
+        "author2",
+        "etc"
+      ],
+      "sa": [
+        "subject1",
+        "subject2",
+        "subject3"
+      ],
+      "volissue": "volume-issue string",
+      "a_affiliation": "author affiliation",
+      "reftitle": [
+        "reference1",
+        "reference2",
+        "reference3",
+        "etc"
+      ],
+      "refauthor": [
+        "author1",
+        "author2",
+        "author3",
+        "etc"
+      ],
+      "refvol": [
+        "volume/issue",
+        "volume/issue",
+        "volume/issue",
+        "etc"
+      ],
+      "body": "fulltext-of-pdf"
+    }
+  }
 ]
 
 

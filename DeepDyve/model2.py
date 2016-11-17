@@ -1,64 +1,91 @@
-
-import pandas as pd
-from data_manage import pd_querydb
-from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
-#import graphlab
 import cPickle as pickle
-from sklearn.metrics.pairwise import cosine_similarity
-from nltk import word_tokenize
-from nltk.stem import WordNetLemmatizer
 
+import nltk
+import numpy as np
+from nltk.stem.wordnet import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity,linear_kernel
+
+from data_manage import pd_querydb
 
 
 class LemmaTokenizer(object):
     def __init__(self):
         self.wnl = WordNetLemmatizer()
+
     def __call__(self, doc):
-        return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
+        return [self.wnl.lemmatize(t) for t in nltk.word_tokenize(doc)]
 
 
 
 
-df=pd_querydb('select body from docs limit 1000')
+def vectorize(save=False):
+
+    vectorizer = TfidfVectorizer( dtype=np.int32, strip_accents='ascii', stop_words='english',
+                                 tokenizer=None)
+
+    vect = vectorizer.fit_transform(df['body']).toarray()
 
 
 
-vectorizer=TfidfVectorizer(strip_accents='ascii',stop_words='english',)
+    #print np.array2string(matrix, formatter={'float_kind': '{0:.2f}'.format})
+
+    if save:
+        with open('my_vectorizer.pkl', 'wb') as f:
+            pickle.dump(vectorizer, f)
+        with open('my_data.pkl','wb') as f:
+            pickle.dump(vect,f)
+
+    return vectorizer,vect,df
 
 
 
-vect=vectorizer.fit_transform(df['body'])#.toarray()
+def unpickle_vect():
 
-print vectorizer.get_feature_names()
+    with open('my_vectorizer.pkl') as f:
+        vectorizer=pickle.load(f)
 
-assert False
+    with open('my_data.pkl') as f:
+        vect=pickle.load(f)
 
-
-
-with open('my_vectorizer.pkl', 'wb') as f:
-    pickle.dump(vectorizer, f)
-
-
-while True:
-    query=raw_input('Enter Q to quit')
-    if query=='Q':
-        break
-
-    query='veterinary horse animal'
-    query_vec=vectorizer.transform(query)
+    return vectorizer,vect
 
 
+def similar_docs(df,vect, vectorizer,query=None, index=None, topmost=6):
 
-    similarities=cosine_similarity(query_vec,vect[0,:])
+    if query:
 
-    print similarities
+        fquery=vectorizer.fit_transform(query)
+        similarities = cosine_similarity(fquery,vect).flatten()
+        print '''
+        __________________________________________________
 
+        {}
+        ___________________________________________________
+        '''.format(query)
+    else:
+        similarities = cosine_similarity(vect[index], vect).flatten()
+        print '''
+        __________________________________________________
+        Index: {}
+        Title: {}
+        Subjects: {}
+        ___________________________________________________
+                '''.format(index,df['title'][index],df['sa'][index])
 
+    relateddocs=similarities.argsort()[:-topmost:-1]
 
+    for i in relateddocs:
 
-
-
-
-
-
-
+        print '''
+                __________________________________________________
+                Index: {}
+                Title: {}
+                Subjects: {}
+                ___________________________________________________
+                        '''.format(i, df['title'][i], df['sa'][i])
+    return df,relateddocs
+query='behavioral science psychology chemistry biology'
+df = pd_querydb('select body,title,sa from docs limit 500')
+vectorizer,vect=unpickle_vect()
+similar_docs(df,vect,vectorizer,index=5)
