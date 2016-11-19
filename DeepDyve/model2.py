@@ -1,5 +1,5 @@
 import cPickle as pickle
-
+import pandas as pd
 import nltk
 import numpy as np
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -86,6 +86,9 @@ def similar_docs(df,vect, vectorizer,query=None, index=None, topmost=6):
                         '''.format(i, df['title'][i], df['sa'][i])
     return df,relateddocs
 query='behavioral science psychology chemistry biology'
-df = pd_querydb('select body,title,sa from docs limit 500')
-vectorizer,vect=unpickle_vect()
-similar_docs(df,vect,vectorizer,index=5)
+df = pd_querydb('select body,title,sa from docs')
+
+df.to_csv('deep')
+
+# vectorizer,vect=unpickle_vect()
+# similar_docs(df,vect,vectorizer,index=5)

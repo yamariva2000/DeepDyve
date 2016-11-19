@@ -17,7 +17,6 @@ add id text;
 
 update docs set
 publisher = data->'publisher',
-
 REFAUTHOR =data->'REFAUTHOR',
 volissue=data->'volissue',
 title=data->'title',
@@ -28,10 +27,7 @@ REFTITLE=data->'REFTITLE',
 REFVOL=data->'REFVOL',
 authors=data->'authors',
 sa=data->'sa',
-id=data->'id'
-
-
-update docs set
+id=data->'id',
 body=data->'body';
 
 
