@@ -1,8 +1,9 @@
-from gensim import corpora, models, similarities
-import logging
-import data_manage as dm
-from psycopg2.extras import DictCursor
+from gensim import corpora
 from gensim.models import doc2vec
+from psycopg2.extras import DictCursor
+
+from DeepDyve.database import data_manage as dm
+
 
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -10,6 +11,7 @@ from gensim.models import doc2vec
 class DDCorpus(object):
     def __iter__(self):
         cursor
+
 
 
 

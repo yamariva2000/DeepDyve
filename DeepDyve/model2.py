@@ -1,12 +1,12 @@
 import cPickle as pickle
-import pandas as pd
+
 import nltk
 import numpy as np
 from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity,linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 
-from data_manage import pd_querydb
+from DeepDyve.database.data_manage import pd_querydb
 
 
 class LemmaTokenizer(object):
