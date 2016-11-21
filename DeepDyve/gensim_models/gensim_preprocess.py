@@ -22,7 +22,6 @@ class CorpusMaker(object):
     '''
 
     def __init__(self, file=None, fromDB=True):
-
         self.file = file
         self.fromDB = fromDB
         if fromDB:
@@ -57,7 +56,7 @@ class CorpusMaker(object):
                                 host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve')
         c = conn.cursor()
 
-        c.execute("select * from docs limit 10")
+        c.execute("select body from docs order by autoid")
         while True:
             fetch = c.fetchmany(size)
             if not fetch:

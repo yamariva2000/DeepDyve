@@ -2,6 +2,7 @@ from gensim import corpora, models, similarities
 
 
 def make_models():
+
     dictionary = corpora.Dictionary.load('deep.dict')
     corpus = corpora.MmCorpus('corpus.mm')
 
@@ -12,7 +13,6 @@ def make_models():
     lsi = models.LsiModel(corpus_tfidf, id2word=dictionary)
 
     corpus_lsi=lsi[corpus_tfidf]
-raw_input()
 
 
     tfidf.save('model.tfidf')
