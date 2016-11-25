@@ -7,7 +7,6 @@ from pprint import pprint
 from nltk.stem import WordNetLemmatizer
 from gensim import utils
 from gensim.corpora import MmCorpus,Dictionary
-from unidecode import unidecode
 import logging
 import pandas as pd
 

@@ -3,9 +3,7 @@ from gensim_preprocess import process_corpus
 from gensim.corpora import MmCorpus,Dictionary
 from gensim import models,similarities
 import os
-from nltk.stem import WordNetLemmatizer
 import psycopg2
-import csv
 import pandas as pd
 conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
