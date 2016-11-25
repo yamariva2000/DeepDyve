@@ -2,6 +2,7 @@ import logging
 from gensim_preprocess import process_corpus
 from gensim.corpora import MmCorpus,Dictionary
 from gensim import models,similarities
+from gensim.models import HdpModel,LsiModel,LdaModel
 import os
 import psycopg2
 import pandas as pd
@@ -10,13 +11,15 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str,help="choose model i.e. LsiModel")
 parser.add_argument('--num_topics', type=int,help="choose number of topics")
+parser.add_argument('--distributed', type=bool,help="distributed processing")
+
 parser.add_argument('--num_docs', type=int,help="choose number of docs")
 parser.add_argument('--doc_field', type=str,help="choose doc field")
 parser.add_argument('--lemmatize', type=bool,help="true for lemmatizing")
 
 args = parser.parse_args()
 
-argsdict=dict(args)
+argsdict=args.__dict__
 
 
 
@@ -27,7 +30,7 @@ cursor = conn.cursor('data', cursor_factory=psycopg2.extras.DictCursor)
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-class IterQuery(object):
+class IterQuery(object)
 
     def __init__(self,size=100,sql=None):
         cursor.execute(sql)
@@ -149,22 +152,27 @@ class Pipeline(object):
 if __name__ =='__main__':
 
 
-    modelclass=models.LdaModel
+    modelclass=eval(argsdict['model'])
 
     model_params={}
-    if modelclass.name__ in ['HdpModel',]:
+    if modelclass.__name__ in ['HdpModel',]:
         pass
     else:
         model_params['num_topics']=argsdict['num_topics']
 
-    model_params['distributed'] = argsdict['distributed']
+    #model_params['distributed'] = argsdict['distributed']
 
     n_docs=argsdict['num_docs']
 
     extra_id=''
     run=modelclass.__name__+'_{}'.format(n_docs)
 
-    sql='select permdld,{} from docs order by autoid limit {}'.format(argsdict['doc_field'],n_docs)
+    if argsdict['doc_field'] == None:
+        doc_field='body'
+    else:
+        doc_field=argsdict['doc_field']
+
+    sql='select permdld,{} from docs order by autoid limit {}'.format(doc_field,n_docs)
 
     print sql
 

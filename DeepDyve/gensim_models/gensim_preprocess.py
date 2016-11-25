@@ -26,8 +26,8 @@ class process_corpus(object):
         self.sql=sql
 
         self.wordnet=WordNetLemmatizer()
-        self.pstemmer=PorterStemmer
-
+        self.pstemmer=PorterStemmer()
+        self.lemmatize=lemmatize
         self.dictionary = Dictionary(self.iterrecords())
 
         print('dictionary before:', self.dictionary.token2id)
@@ -71,3 +71,8 @@ class process_corpus(object):
 
     def __len__(self):
         return self.cl
+
+
+
+
+    
