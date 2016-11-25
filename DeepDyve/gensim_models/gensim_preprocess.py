@@ -1,65 +1,69 @@
-import psycopg2
-from functools32 import lru_cache
-from gensim import corpora
-from gensim.utils import tokenize
 from nltk.corpus import stopwords
+import psycopg2
+import gensim
+import logging
+import psycopg2.extras
+from pprint import pprint
 from nltk.stem import WordNetLemmatizer
+from gensim import utils
+from gensim.corpora import MmCorpus,Dictionary
+from unidecode import unidecode
+import logging
+import pandas as pd
+
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+conn_string = "host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com' dbname='deepdyve' user='kelster' password='CookieDoge'"
+
+conn = psycopg2.connect(conn_string)
+
+cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
 
-def clean_tokens(line):
-    '''from string, produces list of clean tokens '''
-    wnl = WordNetLemmatizer()
-    lemmatize = lru_cache(maxsize=50000)(wnl.lemmatize)
-    stop_words = set(stopwords.words('english'))
-    line = unicode(line).lower()
-    tokens = [i for i in tokenize(line) if i not in stop_words]
-    return [lemmatize(i) for i in tokens]
+
+class process_corpus(object):
+
+    def __init__(self, sql=None):
+
+        self.sql=sql
+
+        self.wordnet=WordNetLemmatizer()
 
 
-class CorpusMaker(object):
-    '''creates corpus dictionary and bag of words for each document
-            uses postgresdb or local file
-    '''
+        self.dictionary = Dictionary(self.iterrecords())
 
-    def __init__(self, file=None, fromDB=True):
-        self.file = file
-        self.fromDB = fromDB
-        if fromDB:
-            self.dictionary = corpora.Dictionary(documents=self.iterrecords())
-        else:
-            self.dictionary = corpora.Dictionary(documents=self.iterlines())
-        # print self.dictionary
+        print('dictionary before:', self.dictionary.token2id)
 
-        once_ids = [tokenid for tokenid, docfreq in (self.dictionary.dfs).iteritems() if docfreq == 1]
-        self.dictionary.filter_tokens(once_ids)  # remove stop words and words that appear only once
-        self.dictionary.filter_extremes()
+
+        once_ids = [tokenid for tokenid, docfreq in self.dictionary.dfs.iteritems() if docfreq == 1]
+        self.dictionary.filter_tokens(once_ids)
         self.dictionary.compactify()
-        # print self.dictionary
+        print('dictionary after filtering:', self.dictionary.token2id)
 
-    def __iter__(self):
-        'corpus yielding bow'
-        if self.fromDB:
-            for t in self.iterrecords():
-                yield self.dictionary.doc2bow(t)
-        else:
-            for t in self.iterlines():
-                yield self.dictionary.doc2bow(t)
+    def  __iter__(self):
 
-    def iterlines(self):
-        self.fileobject = open(self.file)
+        for tokens in self.iterrecords():  # generates the document tokens and creates bow using dictionary
 
-        for line in self.fileobject:
-            yield clean_tokens(line)
+            yield self.dictionary.doc2bow(tokens)
 
-    def iterrecords(self, size=10):
-        conn = psycopg2.connect(user='kelster', password='CookieDoge',
-                                host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve')
-        c = conn.cursor()
 
-        c.execute("select body from docs order by autoid")
-        while True:
-            fetch = c.fetchmany(size)
-            if not fetch:
-                break
-            for line in fetch:
-                yield clean_tokens(line)
+
+
+
+
+    def iterrecords(self): # generates document tokens for the dictionary
+
+        self.index=[]
+        cursor.execute(self.sql)
+        ct=0
+
+
+        for doc in cursor:
+                self.index.append(doc[0])
+                doc=doc[1]
+                tokens =utils.tokenize(doc,lowercase=True)
+                tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
+                ct += 1
+                yield  tokens # or whatever tokenization suits you
+
+    # def __len__(self):
+    #     return self.__iter__().__sizeof__()
