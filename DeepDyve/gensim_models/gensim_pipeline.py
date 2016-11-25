@@ -7,6 +7,22 @@ from nltk.stem import WordNetLemmatizer
 import psycopg2
 import csv
 import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', type=str,help="choose model i.e. LsiModel")
+parser.add_argument('--num_topics', type=int,help="choose number of topics")
+parser.add_argument('--num_docs', type=int,help="choose number of docs")
+parser.add_argument('--doc_field', type=str,help="choose doc field")
+parser.add_argument('--lemmatize', type=bool,help="true for lemmatizing")
+
+args = parser.parse_args()
+
+argsdict=dict(args)
+
+
+
+
 conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
 cursor = conn.cursor('data', cursor_factory=psycopg2.extras.DictCursor)
@@ -30,19 +46,19 @@ class IterQuery(object):
 
 class Pipeline(object):
 
-    def     __init__(self,run=None,sql=None,modelclass=None,modelparams={}):
-        assert modelclass,  'modelclass is missing'
+    def     __init__(self,run=None,sql=None,modelclass=None,modelparams={},lemmatize=False):
+
         self.run=run
         self.prefix=os.getcwd()+'/data/'+run+'_'
         self.modelparams=modelparams
         self.sql=sql
         self.modelclass=modelclass
-
+        self.lemmatize=lemmatize
     def make_corpus(self):
         assert self.sql, 'data is missing'
         assert self.run,'run id is missing'
 
-        self.corpus=process_corpus(sql=self.sql)
+        self.corpus=process_corpus(sql=self.sql,lemmatize=self.lemmatize)
 
 
         self.dictionary= self.corpus.dictionary
@@ -72,7 +88,8 @@ class Pipeline(object):
         return self.corpus
 
     def get_index(self):
-        return self.index
+            self.index=pd.read_csv(self.prefix+'db_index','r')
+            return self.index
 
     def get_corpus_tfidf(self,fname):
         if fname:
@@ -90,7 +107,7 @@ class Pipeline(object):
         return self.tfidf_vectorizer
 
     def make_model(self):
-
+        assert modelclass, 'modelclass is missing'
         print self.modelparams
         self.model  =  self.modelclass(corpus=self.corpus_tfidf,id2word=self.dictionary,**model_params)
         return self.model
@@ -133,21 +150,28 @@ class Pipeline(object):
 
 if __name__ =='__main__':
 
-    n_docs = 200000
+
     modelclass=models.LdaModel
 
-    model_params={'num_topics':30,}
+    model_params={}
+    if modelclass.name__ in ['HdpModel',]:
+        pass
+    else:
+        model_params['num_topics']=argsdict['num_topics']
 
+    model_params['distributed'] = argsdict['distributed']
 
+    n_docs=argsdict['num_docs']
 
     extra_id=''
     run=modelclass.__name__+'_{}'.format(n_docs)
 
-    sql='select permdld,body from docs order by autoid limit {}'.format(n_docs)
+    sql='select permdld,{} from docs order by autoid limit {}'.format(argsdict['doc_field'],n_docs)
+
     print sql
 
 
-    pipe=Pipeline(run=run,sql=sql,modelclass=modelclass,modelparams=model_params)
+    pipe=Pipeline(run=run,sql=sql,modelclass=modelclass,modelparams=model_params,lemmatize=argsdict['lemmatize'])
     pipe.make_project()
 
 
@@ -158,92 +182,3 @@ if __name__ =='__main__':
 
 
 
-
-
-    # corpus=pipe.get_corpus()
-    # dictionary=pipe.get_dictionary()
-    # tfidf=pipe.get_tfidf()
-    # model=pipe.get_model(modelclass=models.LsiModel)
-    # # index=pipe.get_index()
-
-
-
-    #
-    #
-    # query = 'my dog dental brushing genes'
-    #
-    # wnl=WordNetLemmatizer()
-    #
-    # vec_bow=dictionary.doc2bow([wnl.lemmatize(i) for i in query.lower().split()])
-    #
-    #
-    # assert False
-    #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #
-    #
-    #
-    #
-    #
-    #
-    # while True:
-    #
-    #     print '--------------------------------------'
-    #
-    #     query=raw_input('Enter Query:  ')
-    #     if query=='':
-    #         break
-    #
-    #
-    #     print query
-    #     wnl=WordNetLemmatizer()
-    #
-    #     vec_bow=dictionary.doc2bow([wnl.lemmatize(i) for i in query.lower().split()])
-    #
-    #     from nltk.stem import WordNetLemmatizer
-    #
-    #     vec_bow_reduced=model[vec_bow]
-    #     print 'reduced dimension vecctor:',\
-    #         vec_bow
-    #
-    #     sim=sorted(enumerate(pipe.index[vec_bow_reduced]),key=lambda x: -x[1])[:5]
-    #
-    #     print 'similarities: ',\
-    #         sim
-    #
-    #
-    #     sims_id = [int(i[0]) for i in sim]
-    #
-    #     print sims_id
-    #     print 'matching documents:'
-    #
-    #     for i in sims_id:
-    #         sql = '''
-    #
-    #         select id2,title from docs where id2 = {}
-    #
-    #
-    #         '''.format(i)
-    #
-    #         a=IterQuery(sql=sql)
-    #
-    #         print list(a.iteritems())
-    #
-    #
-    #
