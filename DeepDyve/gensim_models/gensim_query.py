@@ -5,9 +5,10 @@ pipe=gsp.Pipeline()
 
 index=pipe.get_sim_index(fname="./data/HdpModel_2000_index")
 
-dbindex=pipe.get_index('./data/HdpModel_2000_db_index')
+dbindex=pipe.get_db_index('./data/HdpModel_2000_db_index')
 
-
+print dbindex
+assert False
 
 query = 'my dog dental brushing genes'
 

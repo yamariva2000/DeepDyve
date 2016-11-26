@@ -57,7 +57,7 @@ class process_corpus(object):
 
 
         for doc in cursor:
-                self.index.append(doc[0])
+                self.index.append(str(doc[0]).strip())
                 doc=doc[1]
                 tokens =utils.tokenize(doc,lowercase=True)
 

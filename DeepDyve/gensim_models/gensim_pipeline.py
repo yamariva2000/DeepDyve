@@ -87,17 +87,18 @@ class Pipeline(object):
         MmCorpus.serialize(fname=self.prefix+'corpus_tfidf',corpus=self.corpus_tfidf)
 
         with open(self.prefix+'db_index','wb') as f:
-            writer =csv.writer(f,lineterminator='\n')
+            writer =csv.writer(f,delimiter=',')
+            writer.writerow(['db_index'])
             for i in self.index:
-                writer.writerow(i)
+                writer.writerow([i])
 
     def get_corpus(self,fname=None):
         if fname:
             self.corpus = MmCorpus(fname)
         return self.corpus
 
-    def get_index(self,fname=None):
-            df=pd.read_csv(fname,'r')
+    def get_db_index(self,fname=None):
+            df=pd.read_csv(fname)
 
             self.index=df
             return self.index
