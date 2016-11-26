@@ -49,7 +49,7 @@ class IterQuery(object):
 
 class Pipeline(object):
 
-    def_init__(self,run='',sql=None,modelclass=None,modelparams={},lemmatize=False):
+    def __init__(self,run='',sql=None,modelclass=None,modelparams={},lemmatize=False):
 
         self.run=run
 
@@ -85,10 +85,12 @@ class Pipeline(object):
         self.tfidf_vectorizer.save(self.prefix + self.tfidf_vectorizer.__class__.__name__)
         self.corpus_tfidf=self.tfidf_vectorizer[self.corpus]
         MmCorpus.serialize(fname=self.prefix+'corpus_tfidf',corpus=self.corpus_tfidf)
+
         with open(self.prefix+'db_index','wb') as f:
-            writer =csv.writer(f,'excel')
+            #writer =csv.writer(f,'excel')
             for i in self.index:
-                writer.writerow(i)
+                f.writelines(i)
+
 
     def get_corpus(self,fname=None):
         if fname:
@@ -97,7 +99,7 @@ class Pipeline(object):
 
     def get_index(self,fname=None):
             df=pd.read_csv(fname,'r')
-            df.column
+
             self.index=df
             return self.index
 
@@ -127,7 +129,7 @@ class Pipeline(object):
         self.model.save(self.prefix+self.model.__class__.__name__)
 
     def get_model(self,fname=None):
-        if fn:
+        if fname:
             self.model=modelclass.load(fname=fname)
         return self.model
 
@@ -167,7 +169,10 @@ if __name__ =='__main__':
     if modelclass.__name__ in ['HdpModel',]:
         pass
     else:
-        model_params['num_topics']=argsdict['num_topics']
+        if argsdict['num_topics']==None:
+            model_params['num_topics']=200
+        else:
+            model_params['num_topics']=argsdict['num_topics']
 
     #model_params['distributed'] = argsdict['distributed']
 
