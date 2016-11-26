@@ -7,7 +7,7 @@ import os
 import psycopg2
 import pandas as pd
 import argparse
-
+import csv
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str,help="choose model i.e. LsiModel")
 parser.add_argument('--num_topics', type=int,help="choose number of topics")
@@ -30,7 +30,7 @@ cursor = conn.cursor('data', cursor_factory=psycopg2.extras.DictCursor)
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-class IterQuery(object)
+class IterQuery(object):
 
     def __init__(self,size=100,sql=None):
         cursor.execute(sql)
@@ -45,16 +45,21 @@ class IterQuery(object)
                 break
             yield fetch
 
+
+
 class Pipeline(object):
 
-    def     __init__(self,run=None,sql=None,modelclass=None,modelparams={},lemmatize=False):
+    def_init__(self,run='',sql=None,modelclass=None,modelparams={},lemmatize=False):
 
         self.run=run
+
         self.prefix=os.getcwd()+'/data/'+run+'_'
         self.modelparams=modelparams
         self.sql=sql
         self.modelclass=modelclass
         self.lemmatize=lemmatize
+        self.index=[]
+
     def make_corpus(self):
         assert self.sql, 'data is missing'
         assert self.run,'run id is missing'
@@ -67,7 +72,7 @@ class Pipeline(object):
 
         self.tfidf_vectorizer = models.TfidfModel(corpus=self.corpus )
 
-        self.index= pd.DataFrame(self.corpus.index,columns=['db_index',])
+        self.index= self.corpus.index
 
 
     def save_corpus(self):
@@ -80,31 +85,35 @@ class Pipeline(object):
         self.tfidf_vectorizer.save(self.prefix + self.tfidf_vectorizer.__class__.__name__)
         self.corpus_tfidf=self.tfidf_vectorizer[self.corpus]
         MmCorpus.serialize(fname=self.prefix+'corpus_tfidf',corpus=self.corpus_tfidf)
-
-        self.index.to_csv(self.prefix+'db_index','w')
+        with open(self.prefix+'db_index','wb') as f:
+            writer =csv.writer(f,'excel')
+            for i in self.index:
+                writer.writerow(i)
 
     def get_corpus(self,fname=None):
         if fname:
             self.corpus = MmCorpus(fname)
         return self.corpus
 
-    def get_index(self):
-            self.index=pd.read_csv(self.prefix+'db_index','r')
+    def get_index(self,fname=None):
+            df=pd.read_csv(fname,'r')
+            df.column
+            self.index=df
             return self.index
 
-    def get_corpus_tfidf(self,fname):
+    def get_corpus_tfidf(self,fname=None):
         if fname:
-            self.corpus_tfidf = MmCorpus(self.prefix + 'corpus_tfidf')
+            self.corpus_tfidf = MmCorpus(fname=fname)
         return self.corpus_tfidf
 
-    def get_dictionary(self,fname):
+    def get_dictionary(self,fname=None):
         if fname:
-            self.dictionary=Dictionary.load(self.prefix + 'Dictionary')
+            self.dictionary=Dictionary.load(fname)
         return self.dictionary
 
-    def get_vectorizer_tfidf(self,fname):
+    def get_vectorizer_tfidf(self,fname=None):
         if fname:
-            self.tfidf_vectorizer=models.TfidfModel.load(self.prefix+models.TfidfModel.__name__)
+            self.tfidf_vectorizer=models.TfidfModel.load(fname=fname)
         return self.tfidf_vectorizer
 
     def make_model(self):
@@ -117,9 +126,9 @@ class Pipeline(object):
         assert self.model,'no model in memory to save'
         self.model.save(self.prefix+self.model.__class__.__name__)
 
-    def get_model(self,fn=None):
+    def get_model(self,fname=None):
         if fn:
-            self.model=modelclass.load(fn)
+            self.model=modelclass.load(fname=fname)
         return self.model
 
     def make_sim_index(self):
@@ -135,9 +144,9 @@ class Pipeline(object):
 
         self.index.save(self.prefix+'index')
 
-    def get_sim_index(self,fn=None):
-        if fn:
-            self.index=similarities.MatrixSimilarity.load(fn)
+    def get_sim_index(self,fname=None):
+
+        self.index=similarities.MatrixSimilarity.load(fname=fname)
         return self.index
 
     def make_project(self):

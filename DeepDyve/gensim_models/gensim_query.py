@@ -1,22 +1,17 @@
 from nltk import WordNetLemmatizer
 
 import gensim_pipeline as gsp
-
-
-
-
-
-
-# corpus=pipe.get_corpus()
-# dictionary=pipe.get_dictionary()
-# tfidf=pipe.get_tfidf()
-# model=pipe.get_model(modelclass=models.LsiModel)
-# # index=pipe.get_index()
-#
 pipe=gsp.Pipeline()
 
-index=pipe.get_sim_index(fname=None)
-dbindex=pipe.get_index()
+index=pipe.get_sim_index(fname="./data/HdpModel_2000_index")
+
+dbindex=pipe.get_index('./data/HdpModel_10_db_index')
+
+
+
+assert False
+
+
 query = 'my dog dental brushing genes'
 
 wnl=WordNetLemmatizer()

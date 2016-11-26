@@ -1,6 +1,6 @@
 from gensim import corpora, models, similarities
 import gensim_pipeline
-from DeepDyve.database.postgres_Deep import IterQuery
+from gensim_pipeline import IterQuery
 from gensim.models import LsiModel
 
 
