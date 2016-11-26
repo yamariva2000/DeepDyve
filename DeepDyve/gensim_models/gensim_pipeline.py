@@ -87,10 +87,9 @@ class Pipeline(object):
         MmCorpus.serialize(fname=self.prefix+'corpus_tfidf',corpus=self.corpus_tfidf)
 
         with open(self.prefix+'db_index','wb') as f:
-            #writer =csv.writer(f,'excel')
+            writer =csv.writer(f,lineterminator='\n')
             for i in self.index:
-                f.writelines(i)
-
+                writer.writerow(i)
 
     def get_corpus(self,fname=None):
         if fname:
