@@ -16,6 +16,9 @@ parser.add_argument('--distributed', type=bool,help="distributed processing")
 parser.add_argument('--num_docs', type=int,help="choose number of docs")
 parser.add_argument('--doc_field', type=str,help="choose doc field")
 parser.add_argument('--lemmatize', type=bool,help="true for lemmatizing")
+parser.add_argument('--extra_id', type=str,help="add extra information for your run")
+parser.add_argument('--first_sentences', type=bool,help="get x first sentences")
+parser.add_argument('--first_n_sentences', type=int,help="enter number of first sentences")
 
 args = parser.parse_args()
 
@@ -26,7 +29,7 @@ argsdict=args.__dict__
 
 conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
-cursor = conn.cursor('data', cursor_factory=psycopg2.extras.DictCursor)
+cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -49,10 +52,11 @@ class IterQuery(object):
 
 class Pipeline(object):
 
-    def __init__(self,run='',sql=None,modelclass=None,modelparams={},lemmatize=False):
+    def __init__(self,run='',sql=None,modelclass=None,modelparams={},lemmatize=False,first_sentences=False,first_n_sentences=10):
 
         self.run=run
-
+        self.first_n_sentences=first_n_sentences
+        self.first_sentences=first_sentences
         self.prefix=os.getcwd()+'/data/'+run+'_'
         self.modelparams=modelparams
         self.sql=sql
@@ -64,10 +68,12 @@ class Pipeline(object):
         assert self.sql, 'data is missing'
         assert self.run,'run id is missing'
 
-        self.corpus=process_corpus(sql=self.sql,lemmatize=self.lemmatize)
+        self.corpus=process_corpus(sql=self.sql,lemmatize=self.lemmatize,first_sentences=self.first_sentences,n_sentences=self.first_n_sentences)
 
 
         self.dictionary= self.corpus.dictionary
+
+
 
 
         self.tfidf_vectorizer = models.TfidfModel(corpus=self.corpus )
@@ -120,17 +126,26 @@ class Pipeline(object):
 
     def make_model(self):
         assert modelclass, 'modelclass is missing'
-        print self.modelparams
+
+
+
         self.model  =  self.modelclass(corpus=self.corpus_tfidf,id2word=self.dictionary,**model_params)
+
+
         return self.model
 
     def save_model(self):
         assert self.model,'no model in memory to save'
+
+        print self.prefix+self.model.__class__.__name__
         self.model.save(self.prefix+self.model.__class__.__name__)
+
+
 
     def get_model(self,fname=None):
         if fname:
-            self.model=modelclass.load(fname=fname)
+
+            self.model=self.modelclass.load(fname=fname)
         return self.model
 
     def make_sim_index(self):
@@ -173,25 +188,37 @@ if __name__ =='__main__':
             model_params['num_topics']=200
         else:
             model_params['num_topics']=argsdict['num_topics']
-
+    print model_params
     #model_params['distributed'] = argsdict['distributed']
 
     n_docs=argsdict['num_docs']
 
-    extra_id=''
-    run=modelclass.__name__+'_{}'.format(n_docs)
 
     if argsdict['doc_field'] == None:
         doc_field='body'
     else:
         doc_field=argsdict['doc_field']
 
-    sql='select permdld,{} from docs order by autoid limit {}'.format(doc_field,n_docs)
+    extra_id=argsdict['extra_id']
+    if extra_id==None:
+        extra_id=''
+    lemmatize=argsdict['lemmatize']
+
+    if argsdict['first_sentences']:
+        first_sentences=True
+
+
+
+
+    run=extra_id + doc_field +'_' + modelclass.__name__+'_{}'.format(n_docs)
+    sql='select permdld,{} from samples order by permdld limit {}'.format(doc_field,n_docs)
 
     print sql
 
 
-    pipe=Pipeline(run=run,sql=sql,modelclass=modelclass,modelparams=model_params,lemmatize=argsdict['lemmatize'])
+
+    pipe=Pipeline(run=run,sql=sql,modelclass=modelclass,modelparams=model_params,lemmatize=argsdict['lemmatize'],first_sentences=first_sentences,
+                  first_n_sentences=argsdict['first_n_sentences'])
     pipe.make_project()
 
 

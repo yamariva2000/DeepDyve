@@ -9,7 +9,7 @@ from gensim import utils
 from gensim.corpora import MmCorpus,Dictionary
 import logging
 import pandas as pd
-
+import bs4   as beautiful
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 conn_string = "host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com' dbname='deepdyve' user='kelster' password='CookieDoge'"
 
@@ -17,14 +17,23 @@ conn = psycopg2.connect(conn_string)
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
+def get_first_n_sentences_from_document(text, n=10):
+    text = text.replace('\n', '')
+    text = text.split('.')[:n]
+
+    return '.'.join(text)
+
+def count_sentences(text):
+    return len(text.split('.'))
 
 
 class process_corpus(object):
 
-    def __init__(self, sql=None,lemmatize=False):
+    def __init__(self, sql=None,lemmatize=False,first_sentences=False,n_sentences=10):
 
         self.sql=sql
-
+        self.first_sentences=first_sentences
+        self.n_sentences=n_sentences
         self.wordnet=WordNetLemmatizer()
         self.pstemmer=PorterStemmer()
         self.lemmatize=lemmatize
@@ -42,6 +51,7 @@ class process_corpus(object):
         self.cl=0
         for tokens in self.iterrecords():  # generates the document tokens and creates bow using dictionary
             self.cl+=1
+
             yield self.dictionary.doc2bow(tokens)
 
 
@@ -58,18 +68,32 @@ class process_corpus(object):
 
         for doc in cursor:
                 self.index.append(str(doc[0]).strip())
+
                 doc=doc[1]
+#                print to_beautiful(doc[1])
+
+
+                if self.first_sentences:
+
+                    doc=get_first_n_sentences_from_document(doc,self.n_sentences)
+
+
                 tokens =utils.tokenize(doc,lowercase=True)
 
-                if self.lemmatize:
-                    tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
-                else:
-                    tokens = [self.pstemmer.stem(i) for i in tokens if i not in stopwords.words('english')]
+                # print '****************************'
+                # print list(tokens)
 
-                ct += 1
+                if self.lemmatize:
+                     tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
+                else:
+                     tokens = [self.pstemmer.stem(i) for i in tokens if i not in stopwords.words('english')]
+
+                #tokens = [i for i in tokens if i not in stopwords.words('english')]
+
                 yield  tokens # or whatever tokenization suits you
 
     def __len__(self):
+
         return self.cl
 
 
