@@ -10,18 +10,25 @@ from gensim.corpora import MmCorpus,Dictionary
 import logging
 import pandas as pd
 import bs4   as beautiful
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 conn_string = "host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com' dbname='deepdyve' user='kelster' password='CookieDoge'"
 
 conn = psycopg2.connect(conn_string)
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
-def get_first_n_sentences_from_document(text, n=10):
+def get_first_n_sentences_from_document(text, n=10,returnlist=False):
     text = text.replace('\n', '')
-    text = text.split('.')[:n]
 
-    return '.'.join(text)
+    if n==999:
+        text = text.split('.')
+    else:
+        text = text.split('.')[:n]
+    if returnlist:
+        return text
+    else:
+        return '.'.join(text)
+
 
 def count_sentences(text):
     return len(text.split('.'))

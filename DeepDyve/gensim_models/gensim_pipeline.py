@@ -1,3 +1,4 @@
+
 import logging
 from gensim_preprocess import process_corpus
 from gensim.corpora import MmCorpus,Dictionary
@@ -24,16 +25,20 @@ args = parser.parse_args()
 
 argsdict=args.__dict__
 
-
-
-
 conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 class IterQuery(object):
+
+    conn = psycopg2.connect(user='kelster', password='CookieDoge',
+                                host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve')
+
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+
 
     def __init__(self,size=100,sql=None):
         cursor.execute(sql)
