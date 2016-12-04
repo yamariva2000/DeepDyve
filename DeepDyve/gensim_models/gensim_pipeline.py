@@ -1,4 +1,4 @@
-
+from gensim.summarization.textcleaner import clean_text_by_word
 import logging
 from gensim_preprocess import process_corpus
 from gensim.corpora import MmCorpus,Dictionary
@@ -20,6 +20,7 @@ parser.add_argument('--lemmatize', type=bool,help="true for lemmatizing")
 parser.add_argument('--extra_id', type=str,help="add extra information for your run")
 parser.add_argument('--first_sentences', type=bool,help="get x first sentences")
 parser.add_argument('--first_n_sentences', type=int,help="enter number of first sentences")
+parser.add_argument('--table_name', type=str,help="table name to use for samples")
 
 args = parser.parse_args()
 
@@ -29,7 +30,7 @@ conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
-#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 class IterQuery(object):
 
@@ -178,6 +179,29 @@ class Pipeline(object):
         pipe.save_model()
         pipe.make_sim_index()
         pipe.save_sim_index()
+        # self.get_corpus('./data/lem-wholedoc_body_LsiModel_10500_corpus')
+        # self.tfidf_vectorizer = models.TfidfModel(corpus=self.corpus)
+        #
+        # self.index = self.corpus.index
+        # self.tfidf_vectorizer.save(self.prefix + self.tfidf_vectorizer.__class__.__name__)
+        # self.corpus_tfidf = self.tfidf_vectorizer[self.corpus]
+        # MmCorpus.serialize(fname=self.prefix + 'corpus_tfidf', corpus=self.corpus_tfidf)
+        #
+        # with open(self.prefix + 'db_index', 'wb') as f:
+        #     writer = csv.writer(f, delimiter=',')
+        #     writer.writerow(['db_index'])
+        #     for i in self.index:
+        #         writer.writerow([i])
+        #
+        # self.get_corpus('./data/lem-wholedoc_body_LsiModel_10500_corpus')
+        #
+        # self.get_corpus_tfidf('./data/lem-wholedoc_body_LsiModel_10500_corpus_tfidf')
+        # self.get_dictionary('./data/lem-wholedoc_body_LsiModel_10500_Dictionary')
+        #
+        # self.make_model()
+        # self.get_model()
+        # self.make_sim_index()
+        # self.save_sim_index()
 
 
 if __name__ =='__main__':
@@ -197,7 +221,7 @@ if __name__ =='__main__':
     #model_params['distributed'] = argsdict['distributed']
 
     n_docs=argsdict['num_docs']
-
+    table_name=argsdict['table_name']
 
     if argsdict['doc_field'] == None:
         doc_field='body'
@@ -216,7 +240,7 @@ if __name__ =='__main__':
 
 
     run=extra_id + doc_field +'_' + modelclass.__name__+'_{}'.format(n_docs)
-    sql='select permdld,{} from samples order by permdld limit {}'.format(doc_field,n_docs)
+    sql='select permdld, substring({} for 500) from {} order by permdld limit {}'.format(doc_field,table_name,n_docs)
 
     print sql
 

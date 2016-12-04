@@ -2,6 +2,7 @@ from nltk.corpus import stopwords
 import psycopg2
 import gensim
 import logging
+from gensim.summarization.textcleaner import clean_text_by_word
 import psycopg2.extras
 from pprint import pprint
 from nltk.stem import WordNetLemmatizer,PorterStemmer
@@ -24,6 +25,7 @@ def get_first_n_sentences_from_document(text, n=10,returnlist=False):
         text = text.split('.')
     else:
         text = text.split('.')[:n]
+        print text
     if returnlist:
         return text
     else:
@@ -74,6 +76,7 @@ class process_corpus(object):
 
 
         for doc in cursor:
+                print ct
                 self.index.append(str(doc[0]).strip())
 
                 doc=doc[1]
@@ -85,18 +88,19 @@ class process_corpus(object):
                     doc=get_first_n_sentences_from_document(doc,self.n_sentences)
 
 
-                tokens =utils.tokenize(doc,lowercase=True)
+                #tokens =utils.tokenize(doc,lowercase=True)
+                tokens=clean_text_by_word(doc)
 
                 # print '****************************'
                 # print list(tokens)
 
-                if self.lemmatize:
-                     tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
-                else:
-                     tokens = [self.pstemmer.stem(i) for i in tokens if i not in stopwords.words('english')]
+                # if self.lemmatize:
+                #      tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
+                # else:
+                #      tokens = [self.pstemmer.stem(i) for i in tokens if i not in stopwords.words('english')]
 
                 #tokens = [i for i in tokens if i not in stopwords.words('english')]
-
+                ct+=1
                 yield  tokens # or whatever tokenization suits you
 
     def __len__(self):
@@ -105,4 +109,6 @@ class process_corpus(object):
 
 
 
-
+# if __name__'__main__':
+#
+#     sql='select '
