@@ -1,115 +1,65 @@
-from DeepDyve.database.postgres_Deep import IterQuery
-from gensim.corpora import Dictionary,MmCorpus
-from gensim.models import TfidfModel,LsiModel,LdaModel,HdpModel
-from gensim.similarities import Similarity,SparseMatrixSimilarity,MatrixSimilarity
-from gensim.utils import tokenize
-from nltk.stem import WordNetLemmatizer,PorterStemmer
-from nltk.corpus import stopwords
-
-import psycopg2
-conn = psycopg2.connect(user='kelster', password='CookieDoge',
-                                host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve')
-c=conn.cursor()
- # collect statistics about all tokens
-
-class data(object):
-    def __init__(self,  conn = psycopg2.connect(user='kelster', password='CookieDoge',
-                                host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve'),
-                                sql=None):
-
-        self.cursor=conn.cursor()
-        self.sql=sql
-
-        self.wnl=WordNetLemmatizer()
-        self.lines=[]
-    def tokenize(self,doc):
-
-        return [self.wnl.lemmatize(token) for token in tokenize(text=doc,lowercase=True) if (token not in stopwords.words('english') and len(token)>2)]
-
-    def process(self):
-        self.cursor.execute(self.sql)
-        for line in self.cursor:
-            #print line
-            self.lines.append(self.tokenize(line[0]))
-        return self.lines
-
-
-class corpus(object):
-    def __init__(self,docs=None,dict=None):
-        self.docs=docs
-        self.dict=dict
-
-    def __iter__(self):
-        for doc in self.docs.__iter__():
-            yield self.dict.doc2bow(doc)
-
-    def __len__(self):
-        return self.__iter__().__sizeof__()
+from gensim import corpora
+from gensim.models import doc2vec,Doc2Vec
+import gensim
+import collections
+documents = ["Human machine interface for lab abc computer applications",
+              "A survey of user opinion of computer system response time",
+              "The EPS user interface management system",
+              "System and human system engineering testing of EPS",
+              "Relation of user perceived response time to error measurement",
+              "The generation of random binary unordered trees",
+              "The intersection graph of paths in trees",
+              "Graph minors IV Widths of trees and well quasi ordering",
+              "Graph minors A survey"]
 
 
 
-sql='select authors from docs order by id2 limit 50'
-
-data=data(sql=sql)
-docs=data.process()
+model = gensim.models.doc2vec.Doc2Vec(size=20 ,min_count=2, iter=10)
 
 
-dict=Dictionary(docs)
-
-
-singleitems = [k for k, i in dict.dfs.iteritems() if i == 1]
-
-dict.filter_tokens(bad_ids=singleitems)
-
-corpus=corpus(docs,dict)
+docs=[]
 
 
 
 
-corpus_tfidf=TfidfModel(corpus=corpus,dictionary=dict)[corpus]
 
-model=LsiModel(corpus=corpus_tfidf,id2word=dict,num_topics=20)
-
-
-
-#print model.print_topics()
-
-lsi_corpus=model[corpus_tfidf]
-
-index=MatrixSimilarity(model[corpus])
+for i,d in enumerate(documents):
+    tdoc=doc2vec.TaggedDocument(words=gensim.utils.simple_preprocess(d),tags=[i])
+    docs.append(tdoc)
 
 
 
 
-doc = "heat water"
-#print doc
-vec_bow = dict.doc2bow(doc.lower().split())
-vec_lsi = model[vec_bow] # convert the query to Human computer interactionLSI space
-print(vec_lsi)
+model.build_vocab(docs)
 
-sims=index[vec_lsi]
-sims = sorted(enumerate(sims), key=lambda item: -item[1])[:5]
+model.train(docs)
 
 
-sims_id=[int(i[0]) for i in sims]
+# Let's count how each document ranks with respect to the training corpusranks= []
+second_ranks = []
+for doc_id in range(len(docs)):
+    inferred_vector = model.infer_vector(docs[doc_id].words)
+    sims = model.docvecs.most_similar([inferred_vector], topn=len(model.docvecs))
+    print sims
+    rank = [docid for docid, sim in sims].index(doc_id)
+
+    second_ranks.append(sims[1])
+
+
+# In[12]:
+
+
+#
+# x=model.infer_vector(docs[0])
+#
+# print x
+#
+# print model.docvecs[0]
 
 
 
-print sims_id
-print 'matching documents:'
-
-for i in sims_id:
-
-    sql='''
-
-    select id2,title from docs where id2 = {}
 
 
-    '''.format(i)
-    c.execute(sql)
-
-    print c.fetchone()
-
-
+#print model.docvecs.most_similar([x],topn=9)
 
 

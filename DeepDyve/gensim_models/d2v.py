@@ -25,130 +25,145 @@ import smart_open
 import random
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-
 conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
-
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
-
-cursor.execute('select body from samples_2000 order by permdld limit 100')
-# In[2]:
-
-# Set file names for train and test data
-test_data_dir = '{}'.format(os.sep).join([gensim.__path__[0], 'test', 'test_data'])
-lee_train_file = test_data_dir + os.sep + 'lee_background.cor'
-lee_test_file = test_data_dir + os.sep + 'lee.cor'
+cursor2 = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
 
-# ## Define a Function to Read and Preprocess Text
+def get_first_n_sentences_from_document(text, n=10,returnlist=False):
+    text = text.replace('\n', '')
 
-# Below, we define a function to open the train/test file (with latin encoding), read the file line-by-line, pre-process each line using a simple gensim pre-processing tool (i.e., tokenize text into individual words, remove punctuation, set to lowercase, etc), and return a list of words. Note that, for a given file (aka corpus), each continuous line constitutes a single document and the length of each line (i.e., document) can vary. Also, to train the model, we'll need to associate a tag/number with each document of the training corpus. In our case, the tag is simply the zero-based line number.
+    if n==999:
+        text = text.split('.')
+    else:
+        text = text.split('.')[:n]
 
-# In[3]:
+    if returnlist:
+        return text
+    else:
+        return '.'.join(text)
+
+
+def test(cursor,sql):
+
+    cursor.execute(sql)
+
+    text=cursor.next()[2]
+
+
+    f=text.split('.')
+
+    for i in f:
+        print i
+
+
+
 
 class corpus_reader(object):
-    def __init__(self,data=None, tokens_only=False,raw_text=False):
-        self.data=data
+    def __init__(self,cursor=None,sql=None, tokens_only=False,raw_text=False):
+        self.cursor=cursor
+        self.sql=sql
         self.tokens_only=tokens_only
         self.raw_text=raw_text
-
+        self.dict={}
 
     def stream(self):
+        self.cursor.execute(self.sql)
+        for doc in self.cursor:
+            text=doc[2]
+            sentences=text.split('.')
+            id=doc[0]
+            title=doc[1]
 
-        for i, line in enumerate(self.data):
-            if self.raw_text:
-                yield (i,line[0])
+            #self.dict[line[0]]=line[1]
+            for i in xrange(len(sentences)):
+                yield gensim.models.doc2vec.TaggedDocument(words=gensim.utils.simple_preprocess(sentences[i]),
+                                                           tags=[id,title,i ])
 
-        else:
-            if self.tokens_only:
-                yield gensim.utils.simple_preprocess(line[0])
-            else:
-                yield gensim.models.doc2vec.TaggedDocument(words=gensim.utils.simple_preprocess(line[0]),tags=[i])
+            #
+            #
+            # if self.raw_text:
+            #     pass:
+            #     #yield (line[0],sentences)
+            #
+            # else:
+            #     if self.tokens_only:
+            #         yield gensim.utils.simple_preprocess(sentences)
+            #     else:
+            #         yield gensim.models.doc2vec.TaggedDocument(words=gensim.utils.simple_preprocess(sentences),tags=[line[0]])
 
-    def reset(self):
-        self.stream().send('restart')
+sql='select permdld,title,body from docs order by permdld  limit 300'
 
-
-
-
-
-
-
-
-
-
-sql='select permdld,title,body from samples_2000 order by permdld limit 100'
-cursor.execute(sql)
+reader =corpus_reader(cursor=cursor,sql=sql)
 
 
-
-reader =corpus_reader(cursor)
-
-corpus=reader.stream()
-
-for i in corpus:
+for i in reader.stream():
     print i
-
-
-
-
-
-
-
-
 
 assert False
 
 
-model = gensim.models.doc2vec.Doc2Vec(size=70, min_count=2, iter=10)
 
 
-model.build_vocab(train_corpus)
+#
+model = gensim.models.doc2vec.Doc2Vec( window=16, iter=15,workers=3,dbow_words=1)
+# model.build_vocab(reader.stream())
+# #
+# #
+# model.train(reader.stream())
+# #
+# model.save('./d2v/model')
+
+model=model.load('./d2v/model')
+
+sim={}
 
 
-train_corpus = (read_corpus(sql))
-
-model.train(train_corpus)
+inferred_vector = model.infer_vector('blood coagulations')
 
 
-ranks = []
-second_ranks = []
+sims = model.docvecs.most_similar([inferred_vector],topn=5)
 
-
-train_corpus = (read_corpus(sql))
-sim_dict={}
-for doc in train_corpus:
-
-    inferred_vector = model.infer_vector(doc.words)
-
-    # print inferred_vector
-
-
-
-    sims = model.docvecs.most_similar([inferred_vector], topn=5 )#len(model.docvecs))
+for i in sims:
+    print i[2]
 
 
 
-    print doc.tags[0], '***',sims
-    sim_dict[doc.tags[0]]=sims
-
-    # rank=[i[0] for i in sims].index(doc.tags[0])
-    #
-    # ranks.append(rank)
-    # #print ranks
-    #
-    # second_ranks.append(sims[1])
-
-
-# print second_ranks
-
-#print collections.Counter(ranks)  #96% accuracy
 
 
 
-doc_id = random.randint(0, len(model.docvecs))
-
-#print doc_id,sims[doc_id]
-
-print doc_id,sim_dict[doc_id]
 
 
+#
+#
+#
+# inferred_vector = model.infer_vector('parasites')
+# #print model.similarity(inferred_vector, inferred_vector)
+#
+#
+#
+# sims = model.docvecs.most_similar([inferred_vector],topn=10)
+#
+# for i in sims:
+#
+#     print i
+#     sql="select permdld,title,body from docs where permdld ='{}'".format(i[0])
+#
+#     cursor2.execute(sql)
+#
+#
+#
+#     print cursor2.fetchone()
+#
+
+
+
+
+
+
+
+
+
+# print doc.tags[0]     ,sim_dict[doc.tags[0]]
+# #
+# #
