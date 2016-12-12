@@ -71,43 +71,22 @@ class corpus_reader(object):
 
 
 
-
-
-
-
-
 sql='select permdld,title,body from samples_2000 order by permdld limit 100'
 cursor.execute(sql)
 
-
-
 reader =corpus_reader(cursor)
 
-corpus=reader.stream()
-
-for i in corpus:
-    print i
-
-
-
-
-
-
-
-
-
-assert False
 
 
 model = gensim.models.doc2vec.Doc2Vec(size=70, min_count=2, iter=10)
 
 
-model.build_vocab(train_corpus)
+model.build_vocab(reader.stream())
 
 
-train_corpus = (read_corpus(sql))
 
-model.train(train_corpus)
+
+model.train(reader.stream())
 
 
 ranks = []
