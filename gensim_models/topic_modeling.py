@@ -13,9 +13,7 @@ import pandas as pd
 import psycopg2
 from gensim.summarization.textcleaner import clean_text_by_word
 import numpy as np
-
-
-conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
+from database.rds import conn
 
 cursor = conn.cursor()
 

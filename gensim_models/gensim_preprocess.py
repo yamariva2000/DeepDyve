@@ -11,10 +11,10 @@ from gensim.corpora import MmCorpus,Dictionary
 import logging
 import pandas as pd
 import bs4   as beautiful
-#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-conn_string = "host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com' dbname='deepdyve' user='kelster' password='CookieDoge'"
+from database.rds import conn
 
-conn = psycopg2.connect(conn_string)
+#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
@@ -88,18 +88,8 @@ class process_corpus(object):
                     doc=get_first_n_sentences_from_document(doc,self.n_sentences)
 
 
-                #tokens =utils.tokenize(doc,lowercase=True)
                 tokens=clean_text_by_word(doc)
 
-                # print '****************************'
-                # print list(tokens)
-
-                # if self.lemmatize:
-                #      tokens=[self.wordnet.lemmatize(i) for i in tokens if i not in stopwords.words('english')]
-                # else:
-                #      tokens = [self.pstemmer.stem(i) for i in tokens if i not in stopwords.words('english')]
-
-                #tokens = [i for i in tokens if i not in stopwords.words('english')]
                 ct+=1
                 yield  tokens # or whatever tokenization suits you
 
@@ -107,8 +97,3 @@ class process_corpus(object):
 
         return self.cl
 
-
-
-# if __name__'__main__':
-#
-#     sql='select '

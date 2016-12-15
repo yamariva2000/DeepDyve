@@ -17,10 +17,9 @@ import numpy as np
 from gensim.models import LsiModel,LdaModel,TfidfModel
 import logging
 import psycopg2
-
+from database.rds import conn
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 

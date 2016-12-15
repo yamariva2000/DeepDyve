@@ -9,6 +9,7 @@ import psycopg2
 import pandas as pd
 import argparse
 import csv
+from database.rds import conn
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str,help="choose model i.e. LsiModel")
 parser.add_argument('--num_topics', type=int,help="choose number of topics")
@@ -26,7 +27,6 @@ args = parser.parse_args()
 
 argsdict=args.__dict__
 
-conn = psycopg2.connect(user='kelster', password='CookieDoge',host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com',database='deepdyve')
 
 cursor = conn.cursor( cursor_factory=psycopg2.extras.DictCursor)
 
@@ -34,8 +34,6 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 class IterQuery(object):
 
-    conn = psycopg2.connect(user='kelster', password='CookieDoge',
-                                host='kelgalvanize.cohsvzbgfpls.us-west-2.rds.amazonaws.com', database='deepdyve')
 
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
