@@ -1,4 +1,4 @@
-I used natural language processing to determine if I could improve the quality of information retrieval for a document repository containing academic articles and journals.  I used raw document test as a starting point.
+I used natural language processing to determine if I could improve the quality of information retrieval for a document repository containing academic articles and journals.  I used raw document texts as a starting point.
 
 To enable semantic results that were not completely related to the keyword, I used Latent Semantic Indexing (LSI) to cluster documents into related topics.
 
